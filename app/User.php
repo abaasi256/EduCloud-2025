@@ -2,66 +2,56 @@
 
 namespace App;
 
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Notifications\ResetPassword as ResetPasswordNotification;
+use Laravel\Sanctum\HasApiTokens;
 use App\Permissions\HasPermissionsTrait;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\UserstampsTrait;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable;
-    use SoftDeletes;
-    use UserstampsTrait;
-    use HasPermissionsTrait;
+    use HasApiTokens, Notifiable, SoftDeletes, UserstampsTrait, HasPermissionsTrait;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
     protected $fillable = [
-        'name', 'username', 'email', 'phone_no', 'password', 'status', 'force_logout'
+        'name',
+        'username',
+        'email',
+        'phone_no',
+        'password',
+        'status',
+        'force_logout'
     ];
 
-    /**
-     * The attributes that should be hidden for arrays.
-     *
-     * @var array
-     */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
-    /**
-     * Send the password reset notification.
-     *
-     * @param  string  $token
-     * @return void
-     */
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new ResetPasswordNotification($token));
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'status' => 'boolean',
+        'force_logout' => 'boolean'
+    ];
 
     public function employee()
     {
-        return $this->hasOne('App\Employee');
+        return $this->hasOne(Employee::class);
     }
 
     public function student()
     {
-        return $this->hasOne('App\Student');
+        return $this->hasOne(Student::class);
     }
 
     public function role()
     {
-        return $this->hasOne('App\UserRole');
+        return $this->hasOne(UserRole::class);
     }
 
     public function teacher()
     {
-        return $this->hasOne('App\Employee');
+        return $this->hasOne(Employee::class);
     }
 }
